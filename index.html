@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#123b66" />
+  <title>Seminar PKL — Dimas Prayoga | Barokah Tour</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --sky: #dff3ff;
+      --light-blue: #a9d9f5;
+      --soft-blue: #66b5e8;
+      --ocean: #287fc1;
+      --navy: #123b66;
+      --white: #fff;
+      --grey: #f3f7fa;
+      --sand: #e8cfa7;
+      --ink: #193651;
+      --muted: #71859a;
+      --line: rgba(18, 59, 102, .11);
+      --shadow: 0 24px 70px rgba(18, 59, 102, .12);
+      --serif: "Playfair Display", Georgia, serif;
+      --sans: "DM Sans", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      background: #eaf5fb;
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid var(--soft-blue); outline-offset: 3px; }
+
+    .loading {
+      position: fixed; inset: 0; z-index: 100;
+      display: grid; place-items: center;
+      color: white; background: var(--navy);
+      transition: opacity .7s ease, visibility .7s ease;
+    }
+    .loading.done { opacity: 0; visibility: hidden; }
+    .loader-inner { text-align: center; }
+    .loader-mark {
+      width: 48px; height: 48px; margin: 0 auto 18px;
+      border: 1px solid rgba(255,255,255,.35); border-top-color: white;
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    .loader-inner p { margin: 0; font-size: 11px; letter-spacing: .24em; text-transform: uppercase; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .deck { position: relative; width: 100%; height: 100%; }
+    .slide {
+      position: absolute; inset: 0; overflow: auto;
+      opacity: 0; visibility: hidden; transform: scale(1.025) translateY(10px);
+      transition: opacity .65s ease, transform .8s cubic-bezier(.2,.7,.2,1), visibility .65s;
+      background:
+        radial-gradient(ellipse at 85% 10%, rgba(169,217,245,.25), transparent 35%),
+        linear-gradient(135deg, #f8fcff, #edf6fb 70%, #e8f3fa);
+    }
+    .slide.active { opacity: 1; visibility: visible; transform: none; z-index: 1; }
+    .slide-inner { width: min(1380px, 100%); min-height: 100%; margin: auto; padding: 112px 7vw 100px; }
+    .eyebrow {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--ocean); font-size: 11px; font-weight: 700;
+      letter-spacing: .19em; text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--ocean); }
+    h1, h2, h3, p { margin-top: 0; }
+    h2 { margin: 16px 0 10px; font: 600 clamp(34px, 4.3vw, 58px)/1.08 var(--serif); letter-spacing: -.03em; color: var(--navy); }
+    .lead { max-width: 760px; color: var(--muted); line-height: 1.7; font-size: 15px; }
+    .section-heading { margin-bottom: 30px; }
+
+    .topbar {
+      position: fixed; z-index: 20; top: 20px; left: 50%; transform: translateX(-50%);
+      width: min(1120px, calc(100% - 34px)); min-height: 58px;
+      padding: 8px 12px 8px 18px; display: flex; align-items: center; justify-content: space-between;
+      color: var(--navy); background: rgba(255,255,255,.76);
+      border: 1px solid rgba(255,255,255,.9); border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(18,59,102,.1); backdrop-filter: blur(18px);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+    .brand-mark {
+      width: 32px; height: 32px; display: grid; place-items: center;
+      border-radius: 11px; color: white; background: linear-gradient(145deg, var(--ocean), var(--navy));
+      font: 600 15px var(--serif);
+    }
+    .toolbar { display: flex; align-items: center; gap: 5px; }
+    .tool-btn, .nav-btn {
+      height: 36px; min-width: 36px; padding: 0 11px; border: 0; border-radius: 11px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      color: var(--navy); background: transparent; cursor: pointer; transition: .2s ease;
+      font-size: 12px;
+    }
+    .tool-btn:hover, .nav-btn:hover { background: var(--sky); }
+    .tool-btn.active { color: white; background: var(--ocean); }
+    .tool-label { font-size: 11px; }
+    .timer { min-width: 54px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; text-align: center; }
+
+    .bottom-nav {
+      position: fixed; z-index: 20; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 12px; padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,.8); border-radius: 18px;
+      background: rgba(255,255,255,.78); box-shadow: 0 12px 40px rgba(18,59,102,.1);
+      backdrop-filter: blur(18px);
+    }
+    .nav-btn { width: 38px; padding: 0; border: 1px solid var(--line); background: white; }
+    .slide-count { min-width: 55px; text-align: center; color: var(--navy); font-size: 12px; font-weight: 700; }
+    .progress-track { position: fixed; z-index: 25; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(18,59,102,.08); }
+    .progress-fill { width: 25%; height: 100%; background: linear-gradient(90deg, var(--soft-blue), var(--navy)); transition: width .5s ease; }
+
+    .cover { color: white; background: var(--navy); }
+    .cover::before {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(90deg, rgba(7,31,55,.82) 0%, rgba(7,31,55,.58) 45%, rgba(7,31,55,.08) 100%),
+        linear-gradient(0deg, rgba(7,31,55,.4), transparent 55%),
+        url("https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=2200&q=85") center 48%/cover;
+      transform: scale(1.04); animation: heroZoom 16s ease-out forwards;
+    }
+    @keyframes heroZoom { to { transform: scale(1); } }
+    .cover-content {
+      position: relative; z-index: 1; width: min(1380px, 100%); min-height: 100%;
+      margin: auto; padding: 145px 8vw 110px; display: flex; flex-direction: column; justify-content: center;
+    }
+    .cover .eyebrow { color: #bfe7ff; }
+    .cover .eyebrow::before { background: #bfe7ff; }
+    .cover h1 {
+      max-width: 860px; margin: 24px 0 24px;
+      font: 600 clamp(34px, 5vw, 68px)/1.08 var(--serif); letter-spacing: -.035em;
+      animation: rise .9s .15s both;
+    }
+    .cover h1 em { color: #bfe7ff; font-style: normal; }
+    .cover-subtitle { margin: 0 0 32px; color: rgba(255,255,255,.78); font-size: 14px; letter-spacing: .04em; }
+    .identity-card {
+      display: flex; flex-wrap: wrap; gap: 20px 34px; width: fit-content; max-width: 100%;
+      padding: 19px 24px; border: 1px solid rgba(255,255,255,.32); border-radius: 18px;
+      background: rgba(255,255,255,.12); backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.12); animation: rise .9s .3s both;
+    }
+    .identity-item { min-width: 130px; }
+    .identity-item small { display: block; margin-bottom: 5px; color: rgba(255,255,255,.64); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; }
+    .identity-item strong { font-size: 12px; font-weight: 600; }
+    .cover-foot { margin-top: 26px; color: rgba(255,255,255,.72); font-size: 11px; letter-spacing: .06em; }
+    .cover-foot span { color: var(--sand); }
+    @keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+    .card {
+      border: 1px solid rgba(255,255,255,.9); border-radius: 22px;
+      background: rgba(255,255,255,.8); box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .slide2-grid { display: grid; grid-template-columns: 1.05fr 1.45fr 1fr; gap: 16px; }
+    .company-card { padding: 24px; min-height: 290px; }
+    .company-card h3, .card-title { margin: 0 0 14px; color: var(--navy); font: 600 21px var(--serif); }
+    .company-card p { margin: 0 0 17px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .service-list { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { display: inline-block; padding: 7px 10px; color: var(--navy); background: var(--sky); border-radius: 20px; font-size: 10px; }
+    .metric-card { padding: 22px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .metric {
+      padding: 15px 13px; border-radius: 15px; background: #f3f9fd;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .metric:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(18,59,102,.1); }
+    .metric strong { display: block; color: var(--navy); font: 600 23px var(--serif); }
+    .metric span { color: var(--muted); font-size: 10px; }
+    .metric-note { margin: 13px 0 0; color: var(--muted); font-size: 10px; }
+    .competitor-card { padding: 22px; }
+    .competitor-card h3 { margin-bottom: 16px; font: 600 20px var(--serif); }
+    .comp-row { margin: 12px 0; cursor: pointer; }
+    .comp-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 10px; }
+    .comp-label strong { color: var(--navy); }
+    .bar { height: 7px; border-radius: 8px; background: #e9f1f6; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: var(--width); border-radius: inherit; background: linear-gradient(90deg, var(--soft-blue), var(--ocean)); transform-origin: left; animation: grow 1.1s ease both; }
+    .comp-row:nth-of-type(4) .bar i { background: linear-gradient(90deg, var(--sand), #bf9251); }
+    @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+    .lower-grid { display: grid; grid-template-columns: 1.25fr 1fr .95fr; gap: 16px; margin-top: 16px; }
+    .journey-card, .problem-card, .tiktok-card { padding: 20px 22px; }
+    .journey { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 14px; }
+    .journey-step { flex: 1; text-align: center; }
+    .journey-step b { display: grid; place-items: center; width: 34px; height: 34px; margin: 0 auto 7px; border-radius: 12px; color: var(--ocean); background: var(--sky); font-size: 12px; }
+    .journey-step span { color: var(--muted); font-size: 9px; }
+    .journey-arrow { color: var(--light-blue); font-size: 14px; }
+    .problem-card ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .tiktok-stat { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .tiktok-stat strong { color: var(--navy); }
+    .source-note { margin-top: 16px; color: var(--muted); font-size: 10px; }
+
+    .strategy-top { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+    .score-card, .matrix-card { padding: 23px; }
+    .score-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .score {
+      padding: 13px 14px; border-radius: 15px; color: var(--navy); background: #f1f8fc;
+    }
+    .score span { display: block; margin-bottom: 6px; color: var(--muted); font-size: 10px; }
+    .score strong { font: 600 26px var(--serif); }
+    .score.ifas, .score.efas { background: var(--navy); color: white; }
+    .score.ifas span, .score.efas span { color: rgba(255,255,255,.68); }
+    .factor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .factor {
+      min-height: 64px; padding: 12px; border-radius: 14px; text-align: left;
+      border: 1px solid var(--line); color: var(--ink); background: white; cursor: pointer;
+      transition: transform .2s, border .2s, box-shadow .2s;
+    }
+    .factor:hover { transform: translateY(-3px); border-color: var(--soft-blue); box-shadow: 0 8px 20px rgba(18,59,102,.08); }
+    .factor b { display: block; margin-bottom: 4px; color: var(--ocean); font-size: 9px; letter-spacing: .12em; }
+    .factor span { font-size: 10px; line-height: 1.45; }
+    .tows-card { margin-top: 16px; padding: 23px; }
+    .tows-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .tows {
+      min-height: 128px; padding: 17px; border: 1px solid var(--line); border-radius: 17px;
+      background: linear-gradient(145deg, white, #f4faff); cursor: pointer; text-align: left;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .tows:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .tows b { display: block; margin-bottom: 10px; color: var(--ocean); font-size: 12px; letter-spacing: .12em; }
+    .tows span { color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .innovation-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+    .innovation { padding: 16px; border-radius: 16px; color: white; background: linear-gradient(145deg, #1d5d8c, #123b66); }
+    .innovation b { display: block; margin-bottom: 8px; color: #bfe7ff; font-size: 10px; letter-spacing: .08em; }
+    .innovation span { font-size: 11px; line-height: 1.5; }
+
+    .closing {
+      color: white; background: var(--navy);
+    }
+    .closing::before {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(90deg, rgba(8,33,57,.76), rgba(8,33,57,.15)),
+        linear-gradient(0deg, rgba(8,33,57,.5), transparent 65%),
+        url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2200&q=85") center/cover;
+      animation: heroZoom 18s ease-out both;
+    }
+    .closing-content {
+      position: relative; z-index: 1; display: flex; min-height: 100%;
+      flex-direction: column; align-items: flex-start; justify-content: center;
+      padding: 130px 10vw 110px;
+    }
+    .closing h2 { margin: 24px 0 12px; color: white; font: 600 clamp(56px, 10vw, 120px)/.95 var(--serif); letter-spacing: -.05em; }
+    .closing .lead { color: rgba(255,255,255,.78); }
+    .closing .identity-card { margin-top: 22px; }
+    .closing .eyebrow { color: #bfe7ff; }
+    .closing .eyebrow::before { background: #bfe7ff; }
+    .restart-btn {
+      margin-top: 28px; padding: 12px 17px; border: 1px solid rgba(255,255,255,.55);
+      border-radius: 12px; color: white; background: rgba(255,255,255,.1); cursor: pointer;
+      transition: .2s;
+    }
+    .restart-btn:hover { background: rgba(255,255,255,.23); transform: translateY(-2px); }
+
+    .overlay {
+      position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: 24px;
+      background: rgba(7,31,55,.5); backdrop-filter: blur(9px);
+    }
+    .overlay.show { display: grid; }
+    .dialog {
+      width: min(560px, 100%); max-height: min(80vh, 700px); overflow: auto;
+      padding: 26px; border: 1px solid white; border-radius: 22px; background: #f9fcff;
+      box-shadow: 0 30px 90px rgba(0,0,0,.2); animation: rise .25s ease both;
+    }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .dialog h3 { margin: 0; color: var(--navy); font: 600 25px var(--serif); }
+    .close-btn { width: 34px; height: 34px; border: 0; border-radius: 10px; color: var(--navy); background: var(--sky); cursor: pointer; }
+    .dialog p, .dialog li { color: var(--muted); font-size: 13px; line-height: 1.75; }
+    .thumb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+    .thumb {
+      aspect-ratio: 1; display: flex; align-items: flex-end; padding: 10px; border: 2px solid transparent;
+      border-radius: 14px; color: white; background: linear-gradient(0deg, rgba(0,0,0,.55), transparent 70%), var(--img) center/cover;
+      cursor: pointer; font-size: 11px;
+    }
+    .thumb.current { border-color: var(--ocean); }
+    .presenter-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .presenter-box { padding: 15px; border-radius: 15px; background: white; }
+    .presenter-box small { display: block; margin-bottom: 8px; color: var(--ocean); font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+    .presenter-box p { margin: 0; }
+    .presenter-box .preview { font: 600 20px var(--serif); color: var(--navy); }
+
+    .notes-panel {
+      position: fixed; z-index: 30; right: 20px; top: 90px; width: min(330px, calc(100% - 40px));
+      max-height: 55vh; overflow: auto; padding: 18px; border: 1px solid white; border-radius: 18px;
+      background: rgba(255,255,255,.92); box-shadow: var(--shadow); backdrop-filter: blur(18px);
+      display: none;
+    }
+    .notes-panel.show { display: block; }
+    .notes-panel h3 { margin: 0 0 8px; color: var(--navy); font: 600 19px var(--serif); }
+    .notes-panel p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+    .laser, .spotlight { position: fixed; pointer-events: none; display: none; }
+    .laser {
+      z-index: 60; width: 13px; height: 13px; margin: -6px 0 0 -6px; border-radius: 50%;
+      background: #ff4d5e; box-shadow: 0 0 0 6px rgba(255,77,94,.2), 0 0 22px #ff4d5e;
+    }
+    body.laser-on .laser { display: block; }
+    .spotlight { z-index: 10; inset: 0; display: none; background: rgba(5,20,35,.76); }
+    body.spotlight-on .spotlight {
+      display: block;
+      -webkit-mask-image: radial-gradient(circle 155px at var(--x, 50%) var(--y, 50%), transparent 0 78%, #000 100%);
+      mask-image: radial-gradient(circle 155px at var(--x, 50%) var(--y, 50%), transparent 0 78%, #000 100%);
+    }
+    body.presenter-mode .slide-inner { padding-top: 128px; }
+
+    @media (max-width: 1000px) {
+      .slide-inner { padding: 100px 5vw 90px; }
+      .slide2-grid { grid-template-columns: 1fr 1fr; }
+      .competitor-card { grid-column: span 2; }
+      .lower-grid { grid-template-columns: 1fr 1fr; }
+      .journey-card { grid-column: span 2; }
+      .strategy-top { grid-template-columns: 1fr; }
+      .tows-grid, .innovation-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .topbar { top: 10px; width: calc(100% - 20px); min-height: 50px; padding-left: 10px; }
+      .brand { font-size: 10px; gap: 7px; }
+      .brand-mark { width: 29px; height: 29px; }
+      .toolbar { gap: 0; }
+      .tool-btn { min-width: 32px; padding: 0 8px; }
+      .tool-label, .timer { display: none; }
+      .slide-inner { padding: 88px 18px 90px; }
+      .cover-content { padding: 105px 23px 100px; }
+      .cover h1 { font-size: clamp(35px, 10vw, 50px); }
+      .identity-card { gap: 14px 20px; padding: 15px; }
+      .identity-item { min-width: 120px; }
+      .slide2-grid, .lower-grid, .strategy-top { grid-template-columns: 1fr; }
+      .competitor-card, .journey-card { grid-column: auto; }
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+      .score-list { grid-template-columns: 1fr 1fr; }
+      .factor-grid { grid-template-columns: 1fr 1fr; }
+      .tows-grid, .innovation-grid { grid-template-columns: 1fr 1fr; }
+      .thumb-grid { grid-template-columns: 1fr 1fr; }
+      .closing-content { padding: 100px 25px 100px; }
+      .presenter-layout { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+    @media print {
+      body { overflow: visible; background: white; }
+      .topbar, .bottom-nav, .progress-track, .notes-panel, .overlay, .laser, .spotlight { display: none !important; }
+      .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; transform: none !important; height: 100vh; page-break-after: always; }
+      .slide-inner { padding-top: 40px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="loading" id="loading" aria-label="Memuat presentasi">
+    <div class="loader-inner">
+      <div class="loader-mark"></div>
+      <p>Menyiapkan presentasi</p>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">B</span><span>BAROKAH TOUR <span style="font-weight:400;opacity:.55">/ SEMINAR PKL</span></span></div>
+    <div class="toolbar" aria-label="Kontrol presentasi">
+      <button class="tool-btn" id="presenterBtn" title="Presenter mode" aria-label="Presenter mode">◫</button>
+      <button class="tool-btn" id="notesBtn" title="Catatan pembicara" aria-label="Catatan pembicara">▤</button>
+      <button class="tool-btn" id="laserBtn" title="Laser pointer" aria-label="Laser pointer">⌖</button>
+      <button class="tool-btn" id="spotBtn" title="Spotlight" aria-label="Spotlight">◉</button>
+      <button class="tool-btn" id="thumbBtn" title="Navigasi slide" aria-label="Navigasi slide">▦</button>
+      <span class="timer" id="timer">00:00</span>
+      <button class="tool-btn" id="fullscreenBtn" title="Layar penuh" aria-label="Layar penuh">⛶</button>
+      <button class="tool-btn" id="pdfBtn" title="Cetak atau simpan sebagai PDF" aria-label="Cetak atau simpan sebagai PDF">↓</button>
+    </div>
+  </header>
+
+  <main class="deck" id="deck">
+    <section class="slide cover active" data-title="Pembuka">
+      <div class="cover-content">
+        <div class="eyebrow">Seminar Praktik Kerja Lapangan · 2026</div>
+        <h1>Perancangan Strategi Pemasaran Digital melalui Analisis <em>SWOT &amp; TOWS</em></h1>
+        <p class="cover-subtitle">Sebagai upaya meningkatkan efektivitas media sosial pada Barokah Tour</p>
+        <div class="identity-card">
+          <div class="identity-item"><small>Mahasiswa</small><strong>Dimas Prayoga · 20240080146</strong></div>
+          <div class="identity-item"><small>Program Studi</small><strong>Manajemen · FEB</strong></div>
+          <div class="identity-item"><small>Dosen Pembimbing</small><strong>Riyan Mirdan Faris, M.Si</strong></div>
+          <div class="identity-item"><small>Pembimbing Lapangan</small><strong>Syifa Indah S.A, S.Si</strong></div>
+        </div>
+        <p class="cover-foot">Universitas Nusa Putra <span>·</span> Periode PKL 20 Agustus – 20 September 2026</p>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Profil & Analisis Digital">
+      <div class="slide-inner">
+        <div class="section-heading">
+          <div class="eyebrow">01 · Profil &amp; Analisis Digital</div>
+          <h2>Mengenal Barokah Tour</h2>
+          <p class="lead">Peluang penguatan pemasaran digital berangkat dari layanan yang beragam dan relasi perusahaan dengan segmen institusi.</p>
+        </div>
+
+        <div class="slide2-grid">
+          <article class="card company-card">
+            <h3>Profil Perusahaan</h3>
+            <p>Unit dari PT Bina Barokah Sejahtera yang berlokasi di Sukabumi dan beroperasi sejak 2015. Terdaftar sebagai anggota ASITA dengan nomor 0704/IX/DPP/2018.</p>
+            <div class="service-list">
+              <span class="chip">Wisata</span><span class="chip">Bus Pariwisata</span><span class="chip">WO / EO</span>
+              <span class="chip">MICE</span><span class="chip">Tiket Dufan / Ancol</span><span class="chip">Umrah &amp; Haji</span>
+            </div>
+            <p style="margin-top:17px"><strong style="color:var(--navy)">Segmen terbesar:</strong> pemerintah dan institusi.</p>
+          </article>
+
+          <article class="card metric-card">
+            <h3 class="card-title">Instagram · 22 Juli–19 Agustus 2026</h3>
+            <div class="metric-grid">
+              <div class="metric"><strong data-count="5663">0</strong><span>Followers</span></div>
+              <div class="metric"><strong data-count="2848">0</strong><span>Reach</span></div>
+              <div class="metric"><strong data-count="-59">0</strong><span>Net followers</span></div>
+              <div class="metric"><strong data-count="382">0</strong><span>Total interaksi</span></div>
+            </div>
+            <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+              <div class="metric"><strong data-count="296">0</strong><span>Interaksi feed</span></div>
+              <div class="metric"><strong data-count="59">0</strong><span>Interaksi Reels</span></div>
+              <div class="metric"><strong data-count="27">0</strong><span>Interaksi Story</span></div>
+            </div>
+            <p class="metric-note">Data disajikan sesuai periode pengamatan yang diberikan.</p>
+          </article>
+
+          <article class="card competitor-card">
+            <h3>Perbandingan Followers Instagram</h3>
+            <div class="comp-row" data-info="Sukabumi Tours ID — sekitar 79.100 followers."><div class="comp-label"><span>Sukabumi Tours ID</span><strong>79.100</strong></div><div class="bar"><i style="--width:100%"></i></div></div>
+            <div class="comp-row" data-info="Hanzal Tour — sekitar 13.100 followers."><div class="comp-label"><span>Hanzal Tour</span><strong>13.100</strong></div><div class="bar"><i style="--width:46%"></i></div></div>
+            <div class="comp-row" data-info="Barokah Tour — 5.663 followers."><div class="comp-label"><span>Barokah Tour</span><strong>5.663</strong></div><div class="bar"><i style="--width:33%"></i></div></div>
+            <div class="comp-row" data-info="Benztour — sekitar 2.875 followers."><div class="comp-label"><span>Benztour</span><strong>2.875</strong></div><div class="bar"><i style="--width:23%"></i></div></div>
+          </article>
+        </div>
+
+        <div class="lower-grid">
+          <article class="card journey-card">
+            <h3 class="card-title">Customer Journey</h3>
+            <div class="journey">
+              <div class="journey-step"><b>01</b><span>Content</span></div><span class="journey-arrow">→</span>
+              <div class="journey-step"><b>02</b><span>DM</span></div><span class="journey-arrow">→</span>
+              <div class="journey-step"><b>03</b><span>WhatsApp</span></div><span class="journey-arrow">→</span>
+              <div class="journey-step"><b>04</b><span>Offer</span></div><span class="journey-arrow">→</span>
+              <div class="journey-step"><b>05</b><span>Booking</span></div>
+            </div>
+          </article>
+          <article class="card problem-card">
+            <h3 class="card-title">Temuan Utama</h3>
+            <ul>
+              <li>Variasi konten terbatas dan cenderung promosi.</li>
+              <li>Interaksi audiens masih rendah.</li>
+              <li>Performa belum sepenuhnya dikaitkan dengan inquiry dan booking.</li>
+            </ul>
+          </article>
+          <article class="card tiktok-card">
+            <h3 class="card-title">TikTok</h3>
+            <div class="tiktok-stat"><span>Followers</span><strong>± 1.083</strong></div>
+            <div class="tiktok-stat"><span>Rata-rata views</span><strong>± 800</strong></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Analisis SWOT & Strategi">
+      <div class="slide-inner">
+        <div class="section-heading">
+          <div class="eyebrow">02 · Analisis Strategis</div>
+          <h2>SWOT, IFAS, EFAS &amp; TOWS</h2>
+          <p class="lead">Pilih faktor SWOT atau strategi TOWS untuk melihat ringkasan. Nilai ditampilkan sesuai data penelitian.</p>
+        </div>
+
+        <div class="strategy-top">
+          <article class="card score-card">
+            <h3 class="card-title">Ringkasan Nilai</h3>
+            <div class="score-list">
+              <div class="score"><span>Strength</span><strong>1,61</strong></div>
+              <div class="score"><span>Weakness</span><strong>0,90</strong></div>
+              <div class="score"><span>Opportunity</span><strong>1,33</strong></div>
+              <div class="score"><span>Threat</span><strong>1,00</strong></div>
+              <div class="score ifas"><span>IFAS</span><strong>2,51</strong></div>
+              <div class="score efas"><span>EFAS</span><strong>2,33</strong></div>
+            </div>
+            <p class="source-note">Bobot dan rating SWOT berdasarkan observasi serta konsultasi dengan pembimbing lapangan dan pemilik perusahaan (Rangkuti, 2016).</p>
+          </article>
+          <article class="card matrix-card">
+            <h3 class="card-title">Interactive SWOT Matrix <span style="font:400 10px var(--sans);color:var(--muted)">· pilih faktor</span></h3>
+            <div class="factor-grid">
+              <button class="factor" data-title="Strength" data-detail="Media sosial telah menghasilkan inquiry dan booking. Perusahaan memiliki database pelanggan serta identitas wisata budaya dan edukasi."><b>S · STRENGTH</b><span>Inquiry &amp; booking, database pelanggan, identitas wisata budaya-edukasi.</span></button>
+              <button class="factor" data-title="Weakness" data-detail="Engagement masih rendah, konten terlalu berorientasi promosi, dan pengukuran performa belum lengkap."><b>W · WEAKNESS</b><span>Engagement rendah, konten promosi, pengukuran belum lengkap.</span></button>
+              <button class="factor" data-title="Opportunity" data-detail="Peluang pengembangan mencakup Reels dan TikTok, storytelling, serta kolaborasi."><b>O · OPPORTUNITY</b><span>Reels dan TikTok, storytelling, kolaborasi.</span></button>
+              <button class="factor" data-title="Threat" data-detail="Kompetitor memiliki basis pengikut lebih besar, lebih konsisten, dan menggunakan format konten yang lebih bervariasi."><b>T · THREAT</b><span>Kompetitor lebih besar, konsisten, dan variatif.</span></button>
+            </div>
+          </article>
+        </div>
+
+        <article class="card tows-card">
+          <h3 class="card-title">Strategi TOWS <span style="font:400 10px var(--sans);color:var(--muted)">· klik untuk detail</span></h3>
+          <div class="tows-grid">
+            <button class="tows" data-title="Strategi SO" data-detail="Optimasi Reels dan TikTok; membangun pilar konten budaya dan edukasi; serta mengangkat testimoni pelanggan."><b>SO · Strength × Opportunity</b><span>Optimasi Reels/TikTok · Pilar budaya-edukasi · Testimoni pelanggan</span></button>
+            <button class="tows" data-title="Strategi WO" data-detail="Mengembangkan variasi pilar konten, menyusun idea bank, dan menggunakan KPI dashboard untuk evaluasi."><b>WO · Weakness × Opportunity</b><span>Variasi pilar konten · Idea bank · KPI dashboard</span></button>
+            <button class="tows" data-title="Strategi ST" data-detail="Memperkuat diferensiasi melalui konten budaya dan edukasi, dengan testimoni pelanggan sebagai social proof."><b>ST · Strength × Threat</b><span>Diferensiasi budaya-edukasi · Testimoni sebagai social proof</span></button>
+            <button class="tows" data-title="Strategi WT" data-detail="Menetapkan frekuensi posting minimum, evaluasi mingguan, dan SOP konten."><b>WT · Weakness × Threat</b><span>Frekuensi posting minimum · Evaluasi mingguan · SOP konten</span></button>
+          </div>
+        </article>
+
+        <div class="innovation-grid">
+          <div class="innovation"><b>INOVASI 01</b><span>SOP konten dan standar desain grafis</span></div>
+          <div class="innovation"><b>INOVASI 02</b><span>Pilar konten dan kalender konten</span></div>
+          <div class="innovation"><b>INOVASI 03</b><span>Dashboard KPI media sosial</span></div>
+          <div class="innovation"><b>INOVASI 04</b><span>CRM untuk segmen pemerintah dan institusi</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide closing" data-title="Kesimpulan & Penutup">
+      <div class="closing-content">
+        <div class="eyebrow">03 · Kesimpulan &amp; Penutup</div>
+        <h2>Thank<br />You.</h2>
+        <p class="lead"><strong style="color:white">Questions &amp; Answers</strong><br />Terima kasih atas perhatian dan kesempatan yang diberikan.</p>
+        <div class="identity-card">
+          <div class="identity-item"><small>Mahasiswa</small><strong>Dimas Prayoga · 20240080146</strong></div>
+          <div class="identity-item"><small>Universitas</small><strong>Universitas Nusa Putra · 2026</strong></div>
+        </div>
+        <button class="restart-btn" id="restartBtn">↺ &nbsp; Kembali ke awal presentasi</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="notes-panel" id="notesPanel" aria-live="polite">
+    <h3>Catatan Pembicara</h3>
+    <p id="notesText"></p>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" id="prevBtn" aria-label="Slide sebelumnya">←</button>
+    <span class="slide-count" id="slideCount">01 / 04</span>
+    <button class="nav-btn" id="nextBtn" aria-label="Slide berikutnya">→</button>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="spotlight"></div>
+  <div class="laser" id="laser"></div>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h3 id="dialogTitle">Detail</h3>
+        <button class="close-btn" id="closeDialog" aria-label="Tutup">×</button>
+      </div>
+      <div id="dialogContent"></div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll(".slide")];
+      const count = document.getElementById("slideCount");
+      const progress = document.getElementById("progressFill");
+      const overlay = document.getElementById("overlay");
+      const dialogTitle = document.getElementById("dialogTitle");
+      const dialogContent = document.getElementById("dialogContent");
+      const notesPanel = document.getElementById("notesPanel");
+      const notesText = document.getElementById("notesText");
+      let current = 0;
+      let startTime = Date.now();
+
+      const notes = [
+        "Buka dengan memperkenalkan topik penelitian, identitas mahasiswa, pembimbing, dan periode PKL.",
+        "Jelaskan profil layanan Barokah Tour, data media sosial pada periode pengamatan, perbandingan kompetitor, customer journey, dan permasalahan yang ditemukan.",
+        "Paparkan nilai IFAS dan EFAS, faktor SWOT, strategi TOWS, serta empat rancangan inovasi. Tekankan bahwa bobot dan rating didasarkan pada observasi dan konsultasi.",
+        "Simpulkan hasil analisis dan saran tindak lanjut. Tutup dengan sesi tanya jawab."
+      ];
+
+      function showSlide(index) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+        count.textContent = `${String(current + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        notesText.textContent = notes[current];
+        if (document.body.classList.contains("presenter-mode")) showPresenter();
+      }
+
+      function openDialog(title, html) {
+        dialogTitle.textContent = title;
+        dialogContent.innerHTML = html;
+        overlay.classList.add("show");
+      }
+      function closeDialog() { overlay.classList.remove("show"); }
+
+      document.getElementById("prevBtn").addEventListener("click", () => showSlide(current - 1));
+      document.getElementById("nextBtn").addEventListener("click", () => showSlide(current + 1));
+      document.getElementById("restartBtn").addEventListener("click", () => showSlide(0));
+      document.getElementById("closeDialog").addEventListener("click", closeDialog);
+      overlay.addEventListener("click", e => { if (e.target === overlay) closeDialog(); });
+
+      document.querySelectorAll(".factor, .tows").forEach(button => {
+        button.addEventListener("click", () => openDialog(button.dataset.title, `<p>${button.dataset.detail}</p>`));
+      });
+      document.querySelectorAll(".comp-row").forEach(row => {
+        row.addEventListener("click", () => openDialog("Perbandingan Kompetitor", `<p>${row.dataset.info}</p><p>Angka followers merupakan data yang dicantumkan dalam materi penelitian.</p>`));
+      });
+
+      document.getElementById("fullscreenBtn").addEventListener("click", async () => {
+        try {
+          if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+          else await document.exitFullscreen();
+        } catch { openDialog("Layar penuh", "<p>Mode layar penuh tidak tersedia pada browser ini.</p>"); }
+      });
+      document.getElementById("pdfBtn").addEventListener("click", () => window.print());
+
+      document.getElementById("notesBtn").addEventListener("click", e => {
+        notesPanel.classList.toggle("show");
+        e.currentTarget.classList.toggle("active", notesPanel.classList.contains("show"));
+      });
+      document.getElementById("laserBtn").addEventListener("click", e => {
+        document.body.classList.toggle("laser-on");
+        e.currentTarget.classList.toggle("active");
+      });
+      document.getElementById("spotBtn").addEventListener("click", e => {
+        document.body.classList.toggle("spotlight-on");
+        e.currentTarget.classList.toggle("active");
+      });
+      document.addEventListener("mousemove", e => {
+        const laser = document.getElementById("laser");
+        laser.style.left = `${e.clientX}px`;
+        laser.style.top = `${e.clientY}px`;
+        document.documentElement.style.setProperty("--x", `${e.clientX}px`);
+        document.documentElement.style.setProperty("--y", `${e.clientY}px`);
+      });
+
+      function showPresenter() {
+        const next = slides[Math.min(current + 1, slides.length - 1)].dataset.title;
+        openDialog("Presenter mode", `
+          <div class="presenter-layout">
+            <div class="presenter-box"><small>Slide saat ini</small><p class="preview">${slides[current].dataset.title}</p></div>
+            <div class="presenter-box"><small>Berikutnya</small><p class="preview">${current === slides.length - 1 ? "Akhir presentasi" : next}</p></div>
+            <div class="presenter-box"><small>Catatan</small><p>${notes[current]}</p></div>
+            <div class="presenter-box"><small>Timer presentasi</small><p class="preview">${document.getElementById("timer").textContent}</p></div>
+          </div>`);
+      }
+      document.getElementById("presenterBtn").addEventListener("click", e => {
+        const enabled = document.body.classList.toggle("presenter-mode");
+        e.currentTarget.classList.toggle("active", enabled);
+        if (enabled) showPresenter();
+        else closeDialog();
+      });
+
+      const thumbImages = [
+        "https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=600&q=75",
+        "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=600&q=75",
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=75",
+        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=75"
+      ];
+      document.getElementById("thumbBtn").addEventListener("click", () => {
+        const thumbs = slides.map((slide, i) =>
+          `<button class="thumb ${i === current ? "current" : ""}" style="--img:url('${thumbImages[i]}')" data-slide="${i}">${String(i + 1).padStart(2, "0")} · ${slide.dataset.title}</button>`
+        ).join("");
+        openDialog("Navigasi Slide", `<div class="thumb-grid">${thumbs}</div>`);
+        dialogContent.querySelectorAll(".thumb").forEach(button => button.addEventListener("click", () => {
+          showSlide(Number(button.dataset.slide));
+          closeDialog();
+        }));
+      });
+
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+          closeDialog();
+          notesPanel.classList.remove("show");
+          return;
+        }
+        if (overlay.classList.contains("show")) return;
+        if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); showSlide(current + 1); }
+        if (e.key === "ArrowLeft") showSlide(current - 1);
+        if (e.key === "Home") showSlide(0);
+        if (e.key === "End") showSlide(slides.length - 1);
+        if (e.key.toLowerCase() === "n") document.getElementById("notesBtn").click();
+        if (e.key.toLowerCase() === "l") document.getElementById("laserBtn").click();
+        if (e.key.toLowerCase() === "s") document.getElementById("spotBtn").click();
+      });
+
+      let touchStartX = 0;
+      document.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+      document.addEventListener("touchend", e => {
+        const delta = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(delta) > 65) showSlide(current + (delta < 0 ? 1 : -1));
+      }, { passive: true });
+
+      function animateCounters() {
+        document.querySelectorAll("[data-count]").forEach(el => {
+          const target = Number(el.dataset.count);
+          const duration = 900;
+          const start = performance.now();
+          const format = value => Math.round(value).toLocaleString("id-ID");
+          function tick(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = format(target * eased);
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        });
+      }
+      function updateTimer() {
+        const seconds = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById("timer").textContent =
+          `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+      }
+
+      window.addEventListener("load", () => {
+        setTimeout(() => document.getElementById("loading").classList.add("done"), 450);
+        animateCounters();
+      });
+      setInterval(updateTimer, 1000);
+      showSlide(0);
+    })();
+  </script>
+</body>
+</html>
